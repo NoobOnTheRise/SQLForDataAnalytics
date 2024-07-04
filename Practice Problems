@@ -1,0 +1,123 @@
+-- Practice Problem 1:
+
+/*
+Get job details for BOTH ‘Data Analyst’ or ‘Business Analyst’ positions
+   * For  ‘Data Analyst’, I want jobs only > $100k
+   * For  ‘Business  Analyst’, I only want jobs > $70k
+Only include jobs located in EITHER:
+   * ‘Boston, MA’
+   * ‘Anywhere’ (i.e., Remote Jobs)
+*/
+
+SELECT 
+    job_title_short,
+    job_location,
+    job_via,
+    salary_year_avg
+FROM 
+    job_postings_fact
+WHERE 
+     ((job_title_short = 'Data Analyst' AND salary_year_avg > 100000)
+     OR 
+     (job_title_short = 'Business Analyst' AND salary_year_avg > 70000))
+     AND
+     job_location IN ('Boston, MA', 'Anywhere')
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Practise Problem 2
+
+/*
+From the job_postings_fact return the following columns:
+    * job_id
+    * job_title_short
+    * job_location
+    * job_via
+    * job_posted_date
+    * salary_year_avg
+Also, rename the following:
+    * job_via - job_posted_site
+    * salary_year_avg - avg_yearly_salary
+*/
+ 
+SELECT 
+    job_id,
+    job_title_short,
+    job_location,
+    job_via AS job_posted_site,
+    job_posted_date,
+    salary_year_avg AS avg_yearly_salary
+FROM 
+    job_postings_fact
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Practise Problem 3
+
+/*
+  Look for non senior ‘Data Analyst’ or ‘Business Analyst’ roles
+     * Only get job titles that include either ‘Data’ or ‘Business'
+     * Also include those with ‘Analyst’ in any part of the title
+     * Don’t include any job titles with ‘Senior’ followed by any character
+  Get the job title, location and average yearly salary
+*/
+
+SELECT 
+    job_title,
+    job_location AS location,
+    salary_year_avg AS average_yearly_salary
+FROM 
+    job_postings_fact
+WHERE 
+	(job_title LIKE '%Data%' OR job_title LIKE '%Business%')
+    AND
+    job_title LIKE '%Analyst%'
+    AND
+    job_title NOT LIKE 'Senior'
+    
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Practise Problem 4
+
+/*
+  * Calculates the current month’s total earnings per project
+  * Calculate a scenario where the hourly rate increases by $5
+  * Why?
+      * See the difference if we raised the hourly rate
+      * Figure out what’s a reasonable raise
+*/
+SELECT 
+	project_id,
+	SUM(hours_spent * hours_rate) AS total_earnings_per_project,
+    	SUM(hours_spent * (hours_rate + 5)) AS project_projected_cost
+FROM 
+	invoices_fact
+GROUP BY 
+	project_id
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Practise Problem 5
+
+/*
+	Find the average salary and number of job postings for each skills for this:
+	 * Hint: Use LEFT JOIN to combine skills_dim, skills_job_dim and job_posting_fact tables
+	 * Why? Understand the demand and pay for skills
+*/
+
+SELECT 
+	skills.skills AS skill_name,
+    	COUNT(job_postings.job_id) AS number_of_job_posting,
+    	AVG(job_postings.salary_year_avg) AS average_salary
+FROM skills_dim AS skills
+LEFT JOIN skills_job_dim AS skills_job
+	ON skills.skill_id = skills_job.skill_id
+LEFT JOIN job_postings_fact AS job_postings
+	ON skills_job.job_id = job_postings.job_id   
+GROUP BY
+	skills.skills
+ORDER BY
+	average_salary
+
+
+
