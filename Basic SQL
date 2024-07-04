@@ -1,0 +1,243 @@
+Basic SQL
+
+SELECT: 
+
+    SELECT * FROM job_postings_fact
+
+SELECT specific columns: 
+
+    SELECT job_title_short,job_location FROM job_postings_fact
+
+LIMIT number of rows:
+
+    SELECT job_title_short,job_location
+    FROM job_postings_fact
+    LIMIT 5
+
+DISTINCT - get a unique row
+
+    SELECT DISTINCT job_title_short
+    FROM job_postings_fact
+
+WHERE - set a condition
+
+    SELECT 
+	      job_title_short,
+        job_location,
+        job_via,
+        salary_year_avg
+    FROM job_postings_fact
+    WHERE job_title_short ='Data Analyst'
+
+Comparison of WHRE CLAUSE
+
+  * Comparison operators: = , != , > , < , >= , and <=
+
+  eg: 
+
+    SELECT 
+    	job_title_short,
+        job_location,
+        job_via,
+        salary_year_avg
+    FROM 
+    	job_postings_fact
+    WHERE NOT
+    	job_title_short <> 'Data Analyst' | salary_year_avg > 50000
+    ORDER BY 
+    	salary_year_avg DESC
+
+    * Logical operators: and, or, and not
+
+      eg: 
+
+    SELECT 
+    	job_title_short,
+        job_location,
+        job_via,
+        salary_year_avg
+    FROM 
+    	job_postings_fact
+    WHERE NOT
+    	job_title_short = 'Data Analyst' AND salary_year_avg > 50000 
+    ORDER BY 
+    	salary_year_avg DESC
+
+Comments:
+
+-- This is a comment
+
+/*
+multi
+line
+comment
+*/
+
+ORDER By - sort a column
+
+  SELECT 
+	    job_title_short,
+      job_location,
+      job_via,
+      salary_year_avg
+  FROM 
+	    job_postings_fact
+  WHERE 
+	    job_title_short ='Data Analyst'
+  ORDER BY 
+	    salary_year_avg DESC
+
+
+Order to write commands
+
+    SELECT col1, col2
+    FROM table_name
+    WHERE condition
+    GROUP BY column
+    HAVING condition
+    ORDER BY col1 [ASC|DESC]
+    LIMIT number
+
+WILDCARDS  (%)
+
+     SELECT 
+	      job_title_short,
+        job_location,
+        job_via,
+        salary_year_avg
+    FROM 
+		    job_postings_fact
+    WHERE 
+		    job_title_short LIKE '%Analyst%'
+
+AS (Alias) - give a column a temporary name
+ 
+   SELECT 
+  	      job_title_short AS job_titles,
+          job_location AS locations,
+          job_via AS online_platform,
+          salary_year_avg AS salary
+  FROM 
+  		    job_postings_fact
+
+Operations - 
+
+  SELECT 
+	  project_company,
+    nerd_id,
+    nerd_role,
+    hours_rate AS rate_original,
+    hours_rate - 5 AS rate_drop,
+    hours_rate + 5 AS rate_hike,
+    (hours_rate + 5) * hours_spent AS project_total
+  FROM 
+	  invoices_fact
+  WHERE 
+	  project_total > 1000
+    
+-- project total (after hike) = rate_hike * hours_spent
+
+Aggregation 
+
+  MIN() - returns the smallest value within the selected column
+  MAX() - returns the largest value within the selected column
+  COUNT() - returns the number of rows in a set
+  SUM() - returns the total sum of a numerical column
+  AVG() - returns the average value of a numerical column
+
+  SELECT 
+  	  SUM(salary_year_avg) AS total_salary, 
+      COUNT(*) AS COUNT, 
+      COUNT(DISTINCT job_title_short), 
+      AVG(salary_year_avg) AS avg_salary,
+      MIN(salary_year_avg) AS min_salary,
+      MAX(salary_year_avg) AS max_salary
+  FROM 
+  	job_postings_fact
+  WHERE 
+  	job_title_short = 'Data Analyst'
+
+GROUP BY
+
+  SELECT 
+	job_title_short AS jobs,
+    AVG(salary_year_avg) AS avg_salary,
+    MIN(salary_year_avg) AS min_salary,
+    MAX(salary_year_avg) AS max_salary
+  FROM 
+	  job_postings_fact
+  GROUP BY 
+	  job_title_short 
+  ORDER BY
+	  avg_salary
+
+HAVING
+
+ SELECT 
+	  job_title_short AS jobs,
+    AVG(salary_year_avg) AS avg_salary,
+    MIN(salary_year_avg) AS min_salary,
+    MAX(salary_year_avg) AS max_salary
+  FROM 
+	  job_postings_fact
+  GROUP BY 
+	  job_title_short 
+  HAVING 
+    COUNT(job_title_short) > 100
+  ORDER BY
+	  avg_salary
+
+NULL VALUES - a field with no values
+
+  SELECT 
+  	  job_title_short,
+      job_location,
+      job_via,
+      salary_year_avg
+  FROM 
+  	  job_postings_fact
+  WHERE 
+  	 salary_year_avg IS NOT NULL
+  ORDER BY
+  	 salary_year_avg
+
+JOINS
+
+  (INNER) JOIN: Returns records that have matching values in both tables
+  LEFT (OUTER) JOIN: Returns all records from the left table, and the matched records from the right table
+  RIGHT (OUTER) JOIN: Returns all records from the right table, and the matched records from the left table
+  FULL (OUTER) JOIN: Returns all records when there is a match in either left or right table
+
+-- Left join
+  SELECT 
+  	job_postings.job_id,
+      job_postings.job_title_short,
+      job_postings.company_id,
+      companies.company_id
+  FROM job_postings_fact AS job_postings
+  LEFT JOIN company_dim AS companies
+  	ON job_postings.company_id = companies.company_id
+
+-- Right join
+  SELECT 
+  	  job_postings.job_id,
+      job_postings.job_title_short,
+      job_postings.company_id,
+      companies.name
+  FROM job_postings_fact AS job_postings
+  RIGHT JOIN company_dim AS companies
+  	ON job_postings.company_id = companies.company_id
+
+-- Inner join
+  SELECT 
+  	  job_postings.job_id,
+      job_postings.job_title,
+      skills.skills
+  FROM job_postings_fact AS job_postings
+  INNER JOIN skills_job_dim AS skills_job
+  	ON job_postings.job_id = skills_job.job_id
+  INNER JOIN skills_dim AS skills
+  	ON skills_job.skill_id = skills.skill_id
+
+Full order of execution: https://vladmihalcea.com/wp-content/uploads/2018/05/StatementLifeCycle.png
+
